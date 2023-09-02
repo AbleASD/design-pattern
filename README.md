@@ -19,7 +19,7 @@
 title: 简单工厂类图
 ---
 classDiagram
-
+direction LR
 Sender <|.. WiFiSender: Realization
 Sender <|.. BluetoothSender: Realization
 SimpleFactory ..> Sender : Dependency
@@ -39,7 +39,7 @@ class BluetoothSender {
 }
 
 class SimpleFactory {
-    +createSender(mode)*
+    +createSender(mode)$
 }
 ```
 
@@ -52,7 +52,7 @@ class SimpleFactory {
 title: 工厂方法模式类图
 ---
 classDiagram
-
+direction LR
 Sender <|.. WiFiSender: Realization
 Sender <|.. BluetoothSender: Realization
 
@@ -108,9 +108,9 @@ WiFiFactory ..> Sender: Dependency
 WiFiFactory ..> Reciver: Dependency
 
 class AbstractFactory {
-    <<abstruct>>
-    +createSender()$
-    +createReciver()$
+    <<abstract>>
+    +createSender()*
+    +createReciver()*
 }
 
 class BluetoothFactory {
@@ -128,7 +128,7 @@ Sender <|.. BluetoothSender: Realization
 
 class Sender {
     <<interfcae>>
-    sendDate(date)$
+    sendDate(date)*
 }
 
 class WiFiSender{
@@ -144,7 +144,7 @@ Reciver <|.. WiFiReciver: Realization
 
 class Reciver {
     <<interface>>
-    +reciveDate(date)$
+    +reciveDate(date)*
 }
 
 class BluetoothReciver{
@@ -386,7 +386,15 @@ class IntrusiveTest5 {
 
 ### 枚举类
 
-枚举类是被提倡的单例实现方式，首先其可以保证线程安全(枚举类的字节码中，枚举类被编译为 final 修饰的普通类， final static 修饰类属性，因此枚举类在项目启动时就会被加载并初始化)，同时枚举类默认继承自 `Enum.class`，该类的 clone 方法被修饰为 final，无法被重写，同时该方法直接抛出  `CloneNotSupportedException` 异常，因此枚举类默认禁用 clone 方法。
+枚举类是被提倡的单例实现方式
+
+- 首先其可以保证线程安全(枚举类的字节码中，枚举类被编译为 final 修饰的普通类， final static 修饰类属性，因此枚举类在项目启动时就会被加载并初始化)。
+- 枚举类默认继承自 `Enum.class`，该类的 clone 方法被修饰为 final，无法被重写，同时该方法直接抛出  `CloneNotSupportedException` 异常，因此枚举类默认禁用 clone 方法。
+- 反射时枚举类方法的 `getDeclaredConstructor()` 最终会调用 `getConstructor0()` 方法，然后根据 `parameterTypes` 和 `constructor.getParameterTypes()` 判断，普通类中 `parameterTypes` 和 `constructor.getParameterTypes()` 均为空值，而枚举类 `constructor.getParameterTypes()` 将返回 数组 [class java.lang.String, int]，从而抛出 `NoSuchMethodException` 异常。
+- 反序列在 `readObject()` 方法会调用 `readObject0()`, 枚举选择 `readEnum(unshared)` 方法，其中采用 `Enum.valueOf((Class)cl, name)` 获取的值和采用 `EnumSingleton.INSTANCE` 获取的是同一个对象。
+<!-- TODO 反射和反序列化的逻辑 -->
+
+
 
 ```java
 /**
@@ -409,3 +417,40 @@ public enum EnumSingleton {
 [枚举防止反射、克隆和序列化的原理](https://www.cnblogs.com/call-me-pengye/p/11214435.html)
 
 [单例模式的实现方式及如何有效防止防止反射和反序列化](https://www.cnblogs.com/call-me-pengye/p/11169051.html)
+
+## 适配器模式
+
+适配器模式
+
+```mermaid
+---
+title: 适配器类图
+---
+classDiagram
+
+Target <.. Client: Request
+Target <-- Adapter: Realizetion
+Adaptee <|-- Adapter: Inheritance
+end
+class Target {
+    <<interface>>
+    +Request()*
+}
+class Adaptee {
+    +SpecialRequest()
+}
+class Adapter{
+    name
+    +Request()
+}
+
+%% note for Target "This is a note for a class" %%
+%% callback Adaptee "callbackFunction" "Tooltip"
+click Adapter call callbackFun() "实现的 Request() 中调用的是 Adapter.SpecialRequest()"
+```
+
+适配器模式通常用于兼容不同接口，通过新增适配器类使得不同接口协同工作。适配器类可以分为类适配器、对象适配器和接口适配器。
+
+## 建造者模式
+
+## 代理模式

@@ -2,5 +2,6 @@
     "java.project.sourcePaths": [
         "design-parttens-basic\\src"
     ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "automatic"
 }

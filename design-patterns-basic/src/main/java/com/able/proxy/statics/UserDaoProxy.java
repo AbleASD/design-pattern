@@ -7,8 +7,8 @@ public class UserDaoProxy implements IUserDao {
 
     private UserDao userDao;
 
-    public UserDaoProxy(UserDao userDao) {
-        this.userDao = userDao;
+    public UserDaoProxy() {
+        this.userDao = new UserDao();
     }
 
     @Override

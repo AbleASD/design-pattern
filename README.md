@@ -1,5 +1,35 @@
 # 设计模式
 
+- [设计模式](#设计模式)
+  - [工厂模式](#工厂模式)
+    - [简单工厂模式](#简单工厂模式)
+    - [工厂方法模式](#工厂方法模式)
+    - [抽象工厂模式](#抽象工厂模式)
+  - [单例模式](#单例模式)
+    - [饿汉模式](#饿汉模式)
+    - [懒汉模式](#懒汉模式)
+      - [懒汉模式(线程不安全)](#懒汉模式线程不安全)
+      - [懒汉模式(方法同步)](#懒汉模式方法同步)
+      - [DCL](#dcl)
+      - [静态内部类](#静态内部类)
+      - [懒汉模式防止反射、克隆和序列化侵入](#懒汉模式防止反射克隆和序列化侵入)
+    - [枚举类](#枚举类)
+  - [适配器模式](#适配器模式)
+    - [类适配器模式](#类适配器模式)
+    - [对象适配器模式](#对象适配器模式)
+    - [接口适配器模式(缺省适配器模式)](#接口适配器模式缺省适配器模式)
+  - [建造者模式](#建造者模式)
+  - [代理模式](#代理模式)
+    - [动态代理](#动态代理)
+    - [静态代理](#静态代理)
+  - [装饰器模式](#装饰器模式)
+  - [委托模式](#委托模式)
+  - [责任链模式](#责任链模式)
+  - [组合模式](#组合模式)
+    - [透明模式](#透明模式)
+    - [安全模式](#安全模式)
+  - [享元模式](#享元模式)
+
 设计模式一般被分为三类
 
 - 创建型模式
@@ -394,8 +424,6 @@ class IntrusiveTest5 {
 - 反序列在 `readObject()` 方法会调用 `readObject0()`, 枚举选择 `readEnum(unshared)` 方法，其中采用 `Enum.valueOf((Class)cl, name)` 获取的值和采用 `EnumSingleton.INSTANCE` 获取的是同一个对象。
 <!-- TODO 反射和反序列化的逻辑 -->
 
-
-
 ```java
 /**
  * 枚举单例
@@ -420,18 +448,26 @@ public enum EnumSingleton {
 
 ## 适配器模式
 
-适配器模式
+适配器模式通常用于兼容不同接口，通过新增适配器类使得不同接口协同工作。  
+适配器模式包括三种形式：
+
+- 类适配器模式
+- 对象适配器模式
+- 接口适配器模式。
+
+### 类适配器模式
+
+类适配器使用的是继承的方式，一般来说无法对其子类进行适配
 
 ```mermaid
 ---
-title: 适配器类图
+title: 类适配器类图
 ---
 classDiagram
 
 Target <.. Client: Request
 Target <-- Adapter: Realizetion
 Adaptee <|-- Adapter: Inheritance
-end
 class Target {
     <<interface>>
     +Request()*
@@ -444,13 +480,170 @@ class Adapter{
     +Request()
 }
 
-%% note for Target "This is a note for a class" %%
-%% callback Adaptee "callbackFunction" "Tooltip"
-click Adapter call callbackFun() "实现的 Request() 中调用的是 Adapter.SpecialRequest()"
+click Adapter call callbackFunction() "实现的 Request() 中调用的是super.SpecialRequest()"
+
 ```
 
-适配器模式通常用于兼容不同接口，通过新增适配器类使得不同接口协同工作。适配器类可以分为类适配器、对象适配器和接口适配器。
+### 对象适配器模式
+
+对象适配器使用的是组合的方式，它把源类作为属性放入适配器类中
+
+```mermaid
+---
+title: 对象适配器类图
+---
+classDiagram
+
+Target <.. Client: Request
+Target <-- Adapter: Realizetion
+Adaptee --o Adapter: Aggregation
+class Target {
+    <<interface>>
+    +Request()*
+}
+class Adaptee {
+    +SpecialRequest()
+}
+class Adapter{
+    -Adaptee adaptee
+    +Request()
+}
+
+%% note for Target "This is a note for a class" %%
+%% callback Adaptee "callbackFunction" "Tooltip"
+click Adapter call callbackFunction() "实现的 Request() 中调用的是 adaptee.SpecialRequest()"
+```
+
+### 接口适配器模式(缺省适配器模式)
+
+省适配模式为一个接口提供缺省实现，这样的类型可以从这个缺省实现进行扩展，而不必从原有接口进行扩展。通过接口和抽象类的结合，避免了在实现接口的子类中出现大量的“无意义”实现，这个“无意义”实现，被缓冲到了抽象类中
+
+由缺省适配器类直接实现目标接口，并为所有方法提供缺省的空实现。用户类就只需要继承适配器类，只实现需要的方法。
+
+```mermaid
+---
+title: 缺省适配器类图
+---
+classDiagram
+
+Target <-- AbstractAdapter: Realizetion
+AbstractAdapter <-- Adapter: Inheritance
+class Target {
+    <<interface>>
+    +method1()*
+    +method2()*
+    +method3()*
+}
+
+class AbstractAdapter {
+    <<Abstract>>
+    +method1()
+    +method2()*
+    +method3()
+}
+
+class Adapter{
+    +method1()
+    +method2()
+    +method3()
+}
+%% link Adapter "https://www.github.com" "This is a tooltip for a link"
+```
 
 ## 建造者模式
 
+建造者模式将复杂对象的表示和构建分离，使同样的构建过程可以创建不同的表示。当构建的基本部件不变化而其组合经常变化时，可以使用该方法。
+
+```mermaid
+---
+title: 建造者模式
+---
+classDiagram
+direction TB
+
+IntegrationData *-- Member: Composition
+IntegrationData *-- Order: Composition
+IntegrationData *-- SelectedPlans: Composition
+IntegrationData *-- UserProfile: Composition
+
+IntegrationBuilder <|.. XHFIntergrationBuilder: Realization
+IntergrationDirecor <-- IntegrationBuilder: Association
+IntegrationBuilder <-- IntegrationData: Association
+
+class Member {
+    -String memberId
+    -String memberName
+}
+class Order {
+    -String orderId
+    -String orderName
+}
+class SelectedPlans {
+    -String planId
+    -String planName
+}
+class UserProfile {
+    -String userId
+    -String userName
+}
+
+class IntegrationData {
+    -UserProfile userProfile
+    -SelectedPlans selectedPlans
+    -Order order
+    -Member member
+    %% methods
+    +getters() Object
+    +setters(Objects objects) void
+}
+
+class IntegrationBuilder {
+    <<interface>>
+    +buildUserProfile()* UserProfile
+
+    +buildSelectedPlans()* SelectedPlans
+
+    +buildOrder()* Order
+    
+    +buildMember()* Member
+
+    +buildIntegrationData()* IntegrationData
+}
+
+class XHFIntergrationBuilder {
+    +buildUserProfile() UserProfile
+
+    +buildSelectedPlans() SelectedPlans
+
+    +buildOrder() Order
+    
+    +buildMember() Member
+
+    +buildIntegrationData() IntegrationData
+}
+
+class IntergrationDirecor {
+    +builIntegrationData(IntegrationBuilder builder) IntegrationData
+}
+
+```
+
 ## 代理模式
+
+### 动态代理
+
+### 静态代理
+
+## 装饰器模式
+
+## 委托模式
+
+## 责任链模式
+
+## 组合模式
+
+### 透明模式
+
+### 安全模式
+
+## 享元模式

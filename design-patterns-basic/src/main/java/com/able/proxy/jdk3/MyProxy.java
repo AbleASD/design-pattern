@@ -43,7 +43,6 @@ public class MyProxy {
             f.delete();
             return c.newInstance(handler);
         } catch (Exception e) {
-            // TODO: handle exception
             e.printStackTrace();
         }
         return null;

@@ -9,7 +9,6 @@ public class HeadHunting implements MyInvocationHandler {
     public Object getInstance(Person target) {
         this.target = target;
         Class<? extends Person> clazz = target.getClass();
-        // TODO
         return MyProxy.newProxyInstance(new MyClassLoader(), clazz.getInterfaces(), this);
     }
 
